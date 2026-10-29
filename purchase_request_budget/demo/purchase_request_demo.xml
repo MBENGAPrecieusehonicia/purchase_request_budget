@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : demo/purchase_request_demo.xml
+    RÔLE    : Données de démonstration (§4.1), chargées uniquement si la
+              base a été créée avec les données de démo :
+                - 2 fournisseurs et 5 produits ;
+                - 8 utilisateurs (mot de passe = identifiant de connexion) ;
+                - 3 départements avec leur manager ;
+                - 1 budget par département sur l'année en cours ;
+                - 5 demandes à des états variés, dont une au-dessus du seuil.
+
+    noupdate="1" : créées une seule fois ; une mise à jour du module ne
+    les modifie plus (sinon on écraserait les tests faits pendant la démo).
+
+    Dans les attributs eval="...", on écrit du Python :
+      - ref('xxx')       = identifiant de l'enregistrement XML « xxx » ;
+      - Command.set([...]) = remplace la liste par celle indiquée ;
+      - Command.create({...}) = crée un enregistrement lié (ex. une ligne) ;
+      - time / DateTime / relativedelta = outils de dates.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================================================
+             FOURNISSEURS
+             ============================================================ -->
+        <record id="partner_vendor_infotech" model="res.partner">
+            <field name="name">InfoTech Distribution</field>
+            <field name="is_company" eval="True"/>
+            <field name="email">contact@infotech.example.com</field>
+        </record>
+
+        <record id="partner_vendor_bureau" model="res.partner">
+            <field name="name">Bureau Plus</field>
+            <field name="is_company" eval="True"/>
+            <field name="email">ventes@bureauplus.example.com</field>
+        </record>
+
+        <!-- ============================================================
+             PRODUITS (seller_ids = fournisseurs de l'onglet Achats :
+             le premier sert de « fournisseur suggéré » sur les lignes)
+             ============================================================ -->
+        <record id="product_laptop" model="product.product">
+            <field name="name">Ordinateur portable</field>
+            <field name="type">consu</field>
+            <field name="standard_price">1200</field>
+            <field name="seller_ids" eval="[Command.create({'partner_id': ref('partner_vendor_infotech'), 'price': 1150})]"/>
+        </record>
+
+        <record id="product_screen" model="product.product">
+            <field name="name">Écran 27 pouces</field>
+            <field name="type">consu</field>
+            <field name="standard_price">250</field>
+            <field name="seller_ids" eval="[Command.create({'partner_id': ref('partner_vendor_infotech'), 'price': 240})]"/>
+        </record>
+
+        <record id="product_chair" model="product.product">
+            <field name="name">Chaise de bureau ergonomique</field>
+            <field name="type">consu</field>
+            <field name="standard_price">180</field>
+            <field name="seller_ids" eval="[Command.create({'partner_id': ref('partner_vendor_bureau'), 'price': 175})]"/>
+        </record>
+
+        <record id="product_paper" model="product.product">
+            <field name="name">Ramette de papier A4</field>
+            <field name="type">consu</field>
+            <field name="standard_price">5</field>
+            <field name="seller_ids" eval="[Command.create({'partner_id': ref('partner_vendor_bureau'), 'price': 4.5})]"/>
+        </record>
+
+        <!-- Produit SANS fournisseur : sert à montrer le blocage de la
+             génération des demandes de prix (§3.5). -->
+        <record id="product_headset" model="product.product">
+            <field name="name">Casque audio</field>
+            <field name="type">consu</field>
+            <field name="standard_price">60</field>
+        </record>
+
+        <!-- ============================================================
+             UTILISATEURS
+             group_ids = groupes de l'utilisateur. On les fixe avec
+             Command.set pour que la démo ne dépende pas des groupes
+             attribués par défaut aux nouveaux utilisateurs.
+             ============================================================ -->
+        <record id="user_director" model="res.users">
+            <field name="name">Daniel Directeur</field>
+            <field name="login">directeur</field>
+            <field name="password">directeur</field>
+            <field name="email">directeur@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_director')])]"/>
+        </record>
+
+        <record id="user_manager_it" model="res.users">
+            <field name="name">Inès Manager IT</field>
+            <field name="login">manager_it</field>
+            <field name="password">manager_it</field>
+            <field name="email">manager.it@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_manager')])]"/>
+        </record>
+
+        <record id="user_manager_hr" model="res.users">
+            <field name="name">Romain Manager RH</field>
+            <field name="login">manager_rh</field>
+            <field name="password">manager_rh</field>
+            <field name="email">manager.rh@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_manager')])]"/>
+        </record>
+
+        <record id="user_manager_log" model="res.users">
+            <field name="name">Lucie Manager Logistique</field>
+            <field name="login">manager_log</field>
+            <field name="password">manager_log</field>
+            <field name="email">manager.log@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_manager')])]"/>
+        </record>
+
+        <record id="user_employee_it" model="res.users">
+            <field name="name">Thomas Employé IT</field>
+            <field name="login">employe_it</field>
+            <field name="password">employe_it</field>
+            <field name="email">employe.it@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_user')])]"/>
+        </record>
+
+        <record id="user_employee_hr" model="res.users">
+            <field name="name">Sarah Employée RH</field>
+            <field name="login">employe_rh</field>
+            <field name="password">employe_rh</field>
+            <field name="email">employe.rh@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_user')])]"/>
+        </record>
+
+        <record id="user_employee_log" model="res.users">
+            <field name="name">Karim Employé Logistique</field>
+            <field name="login">employe_log</field>
+            <field name="password">employe_log</field>
+            <field name="email">employe.log@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('group_purchase_request_user')])]"/>
+        </record>
+
+        <!-- Acheteur : groupe standard « Achats / Utilisateur » -->
+        <record id="user_buyer" model="res.users">
+            <field name="name">Alice Acheteuse</field>
+            <field name="login">acheteur</field>
+            <field name="password">acheteur</field>
+            <field name="email">acheteur@example.com</field>
+            <field name="group_ids" eval="[Command.set([ref('base.group_user'), ref('purchase.group_purchase_user')])]"/>
+        </record>
+
+        <!-- ============================================================
+             DÉPARTEMENTS (le manager est ajouté plus bas, une fois les
+             employés créés)
+             ============================================================ -->
+        <record id="department_it" model="hr.department">
+            <field name="name">Informatique</field>
+        </record>
+        <record id="department_hr" model="hr.department">
+            <field name="name">Ressources humaines</field>
+        </record>
+        <record id="department_log" model="hr.department">
+            <field name="name">Logistique</field>
+        </record>
+
+        <!-- ============================================================
+             EMPLOYÉS (chacun relié à son utilisateur et à son département)
+             ============================================================ -->
+        <record id="employee_director" model="hr.employee">
+            <field name="name">Daniel Directeur</field>
+            <field name="user_id" ref="user_director"/>
+        </record>
+
+        <record id="employee_manager_it" model="hr.employee">
+            <field name="name">Inès Manager IT</field>
+            <field name="user_id" ref="user_manager_it"/>
+            <field name="department_id" ref="department_it"/>
+        </record>
+        <record id="employee_manager_hr" model="hr.employee">
+            <field name="name">Romain Manager RH</field>
+            <field name="user_id" ref="user_manager_hr"/>
+            <field name="department_id" ref="department_hr"/>
+        </record>
+        <record id="employee_manager_log" model="hr.employee">
+            <field name="name">Lucie Manager Logistique</field>
+            <field name="user_id" ref="user_manager_log"/>
+            <field name="department_id" ref="department_log"/>
+        </record>
+
+        <record id="employee_it" model="hr.employee">
+            <field name="name">Thomas Employé IT</field>
+            <field name="user_id" ref="user_employee_it"/>
+            <field name="department_id" ref="department_it"/>
+        </record>
+        <record id="employee_hr" model="hr.employee">
+            <field name="name">Sarah Employée RH</field>
+            <field name="user_id" ref="user_employee_hr"/>
+            <field name="department_id" ref="department_hr"/>
+        </record>
+        <record id="employee_log" model="hr.employee">
+            <field name="name">Karim Employé Logistique</field>
+            <field name="user_id" ref="user_employee_log"/>
+            <field name="department_id" ref="department_log"/>
+        </record>
+
+        <!-- Les managers des départements -->
+        <record id="department_it" model="hr.department">
+            <field name="manager_id" ref="employee_manager_it"/>
+        </record>
+        <record id="department_hr" model="hr.department">
+            <field name="manager_id" ref="employee_manager_hr"/>
+        </record>
+        <record id="department_log" model="hr.department">
+            <field name="manager_id" ref="employee_manager_log"/>
+        </record>
+
+        <!-- ============================================================
+             BUDGETS : un par département, du 1er janvier au 31 décembre
+             de l'année en cours (time.strftime('%Y') = année actuelle).
+             ============================================================ -->
+        <record id="budget_it" model="purchase.request.budget">
+            <field name="department_id" ref="department_it"/>
+            <field name="date_start" eval="time.strftime('%Y-01-01')"/>
+            <field name="date_end" eval="time.strftime('%Y-12-31')"/>
+            <field name="amount_allocated">30000</field>
+        </record>
+        <record id="budget_hr" model="purchase.request.budget">
+            <field name="department_id" ref="department_hr"/>
+            <field name="date_start" eval="time.strftime('%Y-01-01')"/>
+            <field name="date_end" eval="time.strftime('%Y-12-31')"/>
+            <field name="amount_allocated">8000</field>
+        </record>
+        <record id="budget_log" model="purchase.request.budget">
+            <field name="department_id" ref="department_log"/>
+            <field name="date_start" eval="time.strftime('%Y-01-01')"/>
+            <field name="date_end" eval="time.strftime('%Y-12-31')"/>
+            <field name="amount_allocated">15000</field>
+        </record>
+
+        <!-- ============================================================
+             DEMANDES D'ACHAT
+             Chaque demande est d'abord créée en BROUILLON avec ses lignes
+             (les lignes ne sont modifiables qu'en brouillon), puis un
+             second bloc <record> avec le même id la fait passer à son
+             état final.
+             ============================================================ -->
+
+        <!-- 1. BROUILLON : écrans pour le service informatique (500) -->
+        <record id="purchase_request_demo_draft" model="purchase.request">
+            <field name="employee_id" ref="employee_it"/>
+            <field name="department_id" ref="department_it"/>
+            <field name="reason">Deux écrans supplémentaires pour l'équipe support.</field>
+            <field name="date_needed" eval="(DateTime.today() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
+            <field name="line_ids" eval="[Command.create({'product_id': ref('product_screen'), 'product_qty': 2})]"/>
+        </record>
+
+        <!-- 2. SOUMISE : chaises pour la logistique (720), en attente du manager -->
+        <record id="purchase_request_demo_submitted" model="purchase.request">
+            <field name="employee_id" ref="employee_log"/>
+            <field name="department_id" ref="department_log"/>
+            <field name="reason">Renouvellement des chaises de l'entrepôt.</field>
+            <field name="line_ids" eval="[Command.create({'product_id': ref('product_chair'), 'product_qty': 4})]"/>
+        </record>
+        <record id="purchase_request_demo_submitted" model="purchase.request">
+            <field name="state">submitted</field>
+            <field name="date_submitted" eval="DateTime.now()"/>
+        </record>
+
+        <!-- 3. ATTENTE DIRECTION : 5 ordinateurs (6 000 > seuil de 5 000),
+                déjà validée par le manager IT -->
+        <record id="purchase_request_demo_to_approve" model="purchase.request">
+            <field name="employee_id" ref="employee_it"/>
+            <field name="department_id" ref="department_it"/>
+            <field name="reason">Équipement des 5 nouveaux développeurs.</field>
+            <field name="line_ids" eval="[Command.create({'product_id': ref('product_laptop'), 'product_qty': 5})]"/>
+        </record>
+        <record id="purchase_request_demo_to_approve" model="purchase.request">
+            <field name="state">to_approve</field>
+            <field name="date_submitted" eval="DateTime.now()"/>
+            <field name="manager_approver_id" ref="user_manager_it"/>
+            <field name="manager_approval_date" eval="DateTime.now()"/>
+        </record>
+
+        <!-- 4. VALIDÉE : papier + ordinateur pour la logistique (1 300), deux
+                fournisseurs différents => 2 demandes de prix à la génération -->
+        <record id="purchase_request_demo_validated" model="purchase.request">
+            <field name="employee_id" ref="employee_log"/>
+            <field name="department_id" ref="department_log"/>
+            <field name="reason">Fournitures et poste de travail pour le bureau de l'entrepôt.</field>
+            <field name="line_ids" eval="[
+                Command.create({'product_id': ref('product_paper'), 'product_qty': 20}),
+                Command.create({'product_id': ref('product_laptop'), 'product_qty': 1}),
+            ]"/>
+        </record>
+        <record id="purchase_request_demo_validated" model="purchase.request">
+            <field name="state">validated</field>
+            <field name="date_submitted" eval="DateTime.now()"/>
+            <field name="manager_approver_id" ref="user_manager_log"/>
+            <field name="manager_approval_date" eval="DateTime.now()"/>
+        </record>
+
+        <!-- 5. REFUSÉE : casques pour les RH (600), refusée par le manager RH -->
+        <record id="purchase_request_demo_refused" model="purchase.request">
+            <field name="employee_id" ref="employee_hr"/>
+            <field name="department_id" ref="department_hr"/>
+            <field name="reason">Casques pour les entretiens en visioconférence.</field>
+            <field name="line_ids" eval="[Command.create({'product_id': ref('product_headset'), 'product_qty': 10})]"/>
+        </record>
+        <record id="purchase_request_demo_refused" model="purchase.request">
+            <field name="state">refused</field>
+            <field name="date_submitted" eval="DateTime.now()"/>
+            <field name="refuse_reason">Quantité trop importante : 4 casques suffisent pour l'équipe.</field>
+        </record>
+
+    </data>
+</odoo>
