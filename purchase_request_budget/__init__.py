@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# FICHIER : __init__.py (racine de l'addon)
-# RÔLE    : Fait du dossier un "package" Python et indique quels sous-dossiers
-#           contenant du code Python doivent être chargés au démarrage d'Odoo.
-#           Sans cet import, les classes Python (modèles) ne seraient jamais
-#           lues et les tables correspondantes jamais créées en base.
+# FICHIER : __init__.py (racine du module)
+# RÔLE    : Fait du dossier un « package » Python et indique à Odoo quels
+#           sous-dossiers contiennent du code Python à charger.
+#           Sans ces imports, nos classes (modèles) ne seraient jamais lues
+#           et les tables correspondantes jamais créées en base de données.
 #
-# Remarque : le __manifest__.py gère les fichiers XML/CSV ; le __init__.py
-#            gère les fichiers Python. Ce sont deux mécanismes distincts.
+# À retenir : __manifest__.py charge les fichiers XML/CSV,
+#             __init__.py charge les fichiers Python.
 # =============================================================================
 
-# Imports commentés pour l'instant : les dossiers models/ et wizard/ n'existent
-# pas encore, et importer un dossier absent ferait planter le chargement.
-# On les activera quand ces dossiers seront créés.
-
-# from . import models   # Charge models/__init__.py -> nos modèles métier (demande, lignes, budget...)
-# from . import wizard   # Charge wizard/__init__.py -> assistant de saisie du motif de refus
+from . import models   # Modèles métier : demande, lignes, budget, extensions.
+from . import wizard   # Assistant de saisie du motif de refus.
