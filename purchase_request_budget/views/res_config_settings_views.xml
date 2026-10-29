@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : views/res_config_settings_views.xml
+    RÔLE    : Ajoute le réglage « Seuil de validation Direction » dans
+              Achats > Configuration > Paramètres (§3.6).
+-->
+<odoo>
+
+    <record id="res_config_settings_view_form_inherit_purchase_request" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.request</field>
+        <field name="model">res.config.settings</field>
+        <!-- Vue des paramètres du module Achats, que l'on complète -->
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <!-- On ajoute notre réglage à la fin du bloc « Commandes » -->
+            <xpath expr="//block[@name='purchase_setting_container']" position="inside">
+                <!-- company_dependent="1" : affiche que le réglage dépend de la société -->
+                <setting id="purchase_request_threshold_setting" company_dependent="1"
+                         string="Demandes d'achat internes"
+                         help="Au-delà de ce montant, une demande validée par le manager doit aussi être validée par la Direction.">
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label for="purchase_request_threshold" class="col-lg-4 o_light_label"/>
+                            <field name="purchase_request_threshold"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

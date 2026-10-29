@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : views/purchase_request_views.xml
+    RÔLE    : Écrans de la demande d'achat :
+                - la vue LISTE (tableau des demandes) ;
+                - la vue FORMULAIRE (fiche d'une demande, avec boutons du workflow) ;
+                - la vue RECHERCHE (filtres et regroupements) ;
+                - les ACTIONS (ce que fait un clic sur un menu).
+
+    Dans une vue, les attributs invisible="..." / readonly="..." contiennent
+    une condition évaluée sur l'enregistrement affiché.
+    Exemple : invisible="state != 'draft'" = bouton caché si la demande
+    n'est pas en brouillon.
+    groups="..." : l'élément n'est affiché qu'aux membres de ces groupes.
+-->
+<odoo>
+
+    <!-- ================================================================
+         VUE LISTE
+         decoration-xxx : couleur de la ligne selon l'état (bonus §4.6) :
+         danger = rouge, success = vert, info = bleu, warning = orange.
+         ================================================================ -->
+    <record id="purchase_request_view_list" model="ir.ui.view">
+        <field name="name">purchase.request.list</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <list string="Demandes d'achat"
+                  decoration-danger="state == 'refused'"
+                  decoration-success="state in ('validated', 'converted')"
+                  decoration-info="state == 'submitted'"
+                  decoration-warning="state == 'to_approve'"
+                  decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="date_request"/>
+                <field name="date_needed" optional="hide"/>
+                <!-- optional="show"/"hide" : colonne que l'utilisateur peut afficher ou masquer -->
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <!-- sum="..." : affiche le total de la colonne en bas de la liste -->
+                <field name="amount_total" sum="Total"/>
+                <field name="activity_ids" widget="list_activity" optional="show"/>
+                <!-- widget="badge" : affiche l'état sous forme d'étiquette colorée -->
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'refused'"
+                       decoration-success="state in ('validated', 'converted')"
+                       decoration-info="state == 'submitted'"
+                       decoration-warning="state == 'to_approve'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         VUE FORMULAIRE
+         ================================================================ -->
+    <record id="purchase_request_view_form" model="ir.ui.view">
+        <field name="name">purchase.request.form</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <form string="Demande d'achat">
+                <!-- header = barre du haut : boutons du workflow + barre d'état -->
+                <header>
+                    <!-- type="object" : le bouton appelle la méthode Python du même nom -->
+                    <button name="action_submit" string="Soumettre" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Valider" type="object"
+                            class="oe_highlight" invisible="state != 'submitted'"
+                            groups="purchase_request_budget.group_purchase_request_manager"/>
+                    <button name="action_approve_director" string="Valider (Direction)" type="object"
+                            class="oe_highlight" invisible="state != 'to_approve'"
+                            groups="purchase_request_budget.group_purchase_request_director"/>
+                    <button name="action_open_refuse_wizard" string="Refuser" type="object"
+                            invisible="state not in ('submitted', 'to_approve')"
+                            groups="purchase_request_budget.group_purchase_request_manager"/>
+                    <button name="action_reset_draft" string="Remettre en brouillon" type="object"
+                            invisible="state != 'refused'"/>
+                    <button name="action_create_purchase_orders" string="Créer les demandes de prix"
+                            type="object" class="oe_highlight" invisible="state != 'validated'"
+                            groups="purchase.group_purchase_user"/>
+                    <!-- statusbar : affiche les étapes ; statusbar_visible = étapes toujours affichées -->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,validated,converted"/>
+                </header>
+
+                <!-- sheet = la « feuille » blanche centrale -->
+                <sheet>
+                    <!-- Boutons intelligents (en haut à droite de la feuille) -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_purchase_orders" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="purchase_order_count == 0"
+                                groups="purchase.group_purchase_user">
+                            <field name="purchase_order_count" widget="statinfo" string="Demandes de prix"/>
+                        </button>
+                    </div>
+
+                    <!-- Bandeau rouge en coin quand la demande est refusée -->
+                    <widget name="web_ribbon" title="Refusée" bg_color="text-bg-danger"
+                            invisible="state != 'refused'"/>
+
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <!-- Motif du refus, mis en évidence dans un encadré rouge -->
+                    <div class="alert alert-danger" role="alert" invisible="not refuse_reason">
+                        <strong>Motif du refus : </strong>
+                        <field name="refuse_reason" class="d-inline"/>
+                    </div>
+
+                    <!-- Deux colonnes de champs -->
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="date_request" readonly="state != 'draft'"/>
+                            <field name="date_needed" readonly="state != 'draft'"/>
+                            <field name="budget_id"/>
+                            <field name="budget_remaining"/>
+                            <field name="needs_director_approval"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason" readonly="state != 'draft'"
+                               placeholder="Pourquoi avez-vous besoin de ces articles ?"/>
+                    </group>
+
+                    <!-- notebook = onglets -->
+                    <notebook>
+                        <page string="Articles" name="lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <!-- editable="bottom" : on saisit les lignes directement dans le tableau -->
+                                <list editable="bottom">
+                                    <!-- widget="handle" : poignée pour réordonner les lignes -->
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="product_qty"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="vendor_id"/>
+                                    <field name="price_subtotal" sum="Total"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                            <!-- oe_subtotal_footer : bloc de total aligné à droite, comme sur un devis -->
+                            <group class="oe_subtotal_footer">
+                                <field name="amount_total"/>
+                            </group>
+                        </page>
+                        <page string="Validations" name="approvals">
+                            <group>
+                                <group string="Manager">
+                                    <field name="date_submitted"/>
+                                    <field name="manager_approver_id"/>
+                                    <field name="manager_approval_date"/>
+                                </group>
+                                <group string="Direction">
+                                    <field name="director_approver_id"/>
+                                    <field name="director_approval_date"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- chatter = historique, messages et activités sous la feuille -->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         VUE RECHERCHE : champs de recherche, filtres prédéfinis et
+         regroupements proposés dans la barre de recherche.
+         ================================================================ -->
+    <record id="purchase_request_view_search" model="ir.ui.view">
+        <field name="name">purchase.request.search</field>
+        <field name="model">purchase.request</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher une demande">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <!-- uid = identifiant de l'utilisateur connecté -->
+                <filter name="my_requests" string="Mes demandes" domain="[('user_id', '=', uid)]"/>
+                <filter name="to_validate" string="À valider"
+                        domain="[('state', 'in', ('submitted', 'to_approve')), ('user_id', '!=', uid)]"/>
+                <separator/>
+                <filter name="draft" string="Brouillon" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Soumise" domain="[('state', '=', 'submitted')]"/>
+                <filter name="to_approve" string="Attente Direction" domain="[('state', '=', 'to_approve')]"/>
+                <filter name="validated" string="Validée" domain="[('state', '=', 'validated')]"/>
+                <filter name="converted" string="Convertie" domain="[('state', '=', 'converted')]"/>
+                <filter name="refused" string="Refusée" domain="[('state', '=', 'refused')]"/>
+                <separator/>
+                <filter name="date_request" string="Date de la demande" date="date_request"/>
+                <!-- Regroupements -->
+                <filter name="group_state" string="État" context="{'group_by': 'state'}"/>
+                <filter name="group_department" string="Département" context="{'group_by': 'department_id'}"/>
+                <filter name="group_employee" string="Demandeur" context="{'group_by': 'employee_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         ACTIONS : une action dit quel modèle afficher, avec quelles vues
+         et quel filtre. Les menus (views/menus.xml) pointent vers elles.
+         ================================================================ -->
+
+    <!-- « Mes demandes » : uniquement les demandes de l'utilisateur connecté -->
+    <record id="purchase_request_action_my" model="ir.actions.act_window">
+        <field name="name">Mes demandes</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez votre première demande d'achat</p>
+            <p>Décrivez votre besoin, ajoutez les articles puis soumettez la demande à votre manager.</p>
+        </field>
+    </record>
+
+    <!-- « Demandes à valider » : en attente, hors demandes de l'utilisateur
+         lui-même. Les règles de sécurité limitent automatiquement ce que
+         chacun voit (son département pour un manager, tout pour la Direction). -->
+    <record id="purchase_request_action_to_validate" model="ir.actions.act_window">
+        <field name="name">Demandes à valider</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('submitted', 'to_approve')), ('user_id', '!=', uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aucune demande à valider</p>
+        </field>
+    </record>
+
+    <!-- « Toutes les demandes » : tout ce que les règles de sécurité permettent de voir -->
+    <record id="purchase_request_action_all" model="ir.actions.act_window">
+        <field name="name">Toutes les demandes</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aucune demande d'achat</p>
+        </field>
+    </record>
+
+</odoo>

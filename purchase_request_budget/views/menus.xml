@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : views/menus.xml
+    RÔLE    : Menu Achats > Demandes internes (§3.6) :
+                Mes demandes / Demandes à valider / Toutes les demandes / Budgets.
+
+    Chargé EN DERNIER dans le manifeste car les menus pointent vers les
+    actions définies dans les autres fichiers de vues.
+-->
+<odoo>
+
+    <!-- ================================================================
+         Ouvrir l'application Achats aux demandeurs.
+         Par défaut, le menu Achats n'est visible que des acheteurs. On y
+         ajoute le groupe Demandeur, et on réserve en contrepartie les
+         sous-menus standards (Commandes, Produits) aux acheteurs, pour
+         qu'un simple employé ne voie que « Demandes internes ».
+         Command.link(...) AJOUTE un groupe sans retirer ceux qui existent.
+         ================================================================ -->
+    <record id="purchase.menu_purchase_root" model="ir.ui.menu">
+        <field name="group_ids" eval="[Command.link(ref('group_purchase_request_user'))]"/>
+    </record>
+    <record id="purchase.menu_procurement_management" model="ir.ui.menu">
+        <field name="group_ids" eval="[Command.link(ref('purchase.group_purchase_user'))]"/>
+    </record>
+    <record id="purchase.menu_purchase_products" model="ir.ui.menu">
+        <field name="group_ids" eval="[Command.link(ref('purchase.group_purchase_user'))]"/>
+    </record>
+
+    <!-- Menu parent « Demandes internes » (sans action : il sert de titre) -->
+    <menuitem id="menu_purchase_request_root"
+              name="Demandes internes"
+              parent="purchase.menu_purchase_root"
+              sequence="3"
+              groups="group_purchase_request_user,purchase.group_purchase_user"/>
+
+    <menuitem id="menu_purchase_request_my"
+              name="Mes demandes"
+              parent="menu_purchase_request_root"
+              action="purchase_request_action_my"
+              sequence="10"
+              groups="group_purchase_request_user"/>
+
+    <menuitem id="menu_purchase_request_to_validate"
+              name="Demandes à valider"
+              parent="menu_purchase_request_root"
+              action="purchase_request_action_to_validate"
+              sequence="20"
+              groups="group_purchase_request_manager"/>
+
+    <menuitem id="menu_purchase_request_all"
+              name="Toutes les demandes"
+              parent="menu_purchase_request_root"
+              action="purchase_request_action_all"
+              sequence="30"
+              groups="group_purchase_request_manager,purchase.group_purchase_user"/>
+
+    <menuitem id="menu_purchase_request_budget"
+              name="Budgets"
+              parent="menu_purchase_request_root"
+              action="purchase_request_budget_action"
+              sequence="40"
+              groups="group_purchase_request_manager"/>
+
+</odoo>
