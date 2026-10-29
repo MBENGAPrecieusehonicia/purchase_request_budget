@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : views/purchase_order_views.xml
+    RÔLE    : Ajoute le champ « Demande d'achat d'origine » sur le formulaire
+              standard de la demande de prix (§3.5).
+
+    Héritage de vue : au lieu de recopier tout le formulaire d'Odoo, on
+    indique (inherit_id) la vue à modifier et, avec un « xpath », l'endroit
+    exact où insérer notre champ.
+-->
+<odoo>
+
+    <record id="purchase_order_view_form_inherit_purchase_request" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.purchase.request</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!-- On place notre champ juste APRÈS le champ « Référence fournisseur » -->
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="purchase_request_id" invisible="not purchase_request_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
