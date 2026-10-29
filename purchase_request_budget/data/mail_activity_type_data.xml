@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : data/mail_activity_type_data.xml
+    RÔLE    : Type d'activité « À valider » (§3.3, règle 1).
+              À la soumission, une activité de ce type est créée pour le
+              manager : elle apparaît dans son horloge d'activités (en haut
+              à droite d'Odoo) et sur la demande.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="mail_activity_type_to_validate" model="mail.activity.type">
+            <field name="name">À valider</field>
+            <field name="summary">Demande d'achat à valider</field>
+            <!-- Ce type n'est proposé que sur les demandes d'achat -->
+            <field name="res_model">purchase.request</field>
+            <!-- Icône Font Awesome affichée à côté de l'activité -->
+            <field name="icon">fa-check-square-o</field>
+            <!-- Échéance : 2 jours après la création de l'activité -->
+            <field name="delay_count">2</field>
+        </record>
+
+    </data>
+</odoo>
