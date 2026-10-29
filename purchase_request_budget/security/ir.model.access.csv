@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_request_user,purchase.request demandeur,model_purchase_request,group_purchase_request_user,1,1,1,1
+access_purchase_request_purchase_user,purchase.request acheteur,model_purchase_request,purchase.group_purchase_user,1,1,0,0
+access_purchase_request_line_user,purchase.request.line demandeur,model_purchase_request_line,group_purchase_request_user,1,1,1,1
+access_purchase_request_line_purchase_user,purchase.request.line acheteur,model_purchase_request_line,purchase.group_purchase_user,1,0,0,0
+access_purchase_request_budget_user,purchase.request.budget demandeur,model_purchase_request_budget,group_purchase_request_user,1,0,0,0
+access_purchase_request_budget_director,purchase.request.budget direction,model_purchase_request_budget,group_purchase_request_director,1,1,1,1
+access_purchase_request_budget_purchase_user,purchase.request.budget acheteur,model_purchase_request_budget,purchase.group_purchase_user,1,0,0,0
+access_purchase_request_refuse_wizard_manager,purchase.request.refuse.wizard manager,model_purchase_request_refuse_wizard,group_purchase_request_manager,1,1,1,1
