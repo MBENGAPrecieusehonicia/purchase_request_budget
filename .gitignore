@@ -1,0 +1,29 @@
+# Fichiers compilés Python (régénérés automatiquement, ne doivent pas être versionnés)
+__pycache__/
+*.py[cod]
+
+# Bases de données, sauvegardes et filestore Odoo (exigence §4.2 du cahier des charges)
+*.sql
+*.dump
+*.zip
+filestore/
+data_dir/
+
+# Configuration locale d'Odoo (contient des mots de passe)
+*.conf
+odoo.conf
+
+# Environnements virtuels Python
+venv/
+.venv/
+
+# Fichiers d'éditeurs et du système
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Journaux d'exécution d'Odoo et bases locales
+*.log
+*.db
