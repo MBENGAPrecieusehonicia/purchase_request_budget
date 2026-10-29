@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FICHIER : wizard/purchase_request_refuse_wizard_views.xml
+    RÔLE    : Formulaire de la fenêtre « Refuser la demande ».
+-->
+<odoo>
+
+    <record id="purchase_request_refuse_wizard_view_form" model="ir.ui.view">
+        <field name="name">purchase.request.refuse.wizard.form</field>
+        <field name="model">purchase.request.refuse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refuser la demande">
+                <group>
+                    <field name="request_id"/>
+                    <!-- placeholder = texte gris affiché tant que le champ est vide -->
+                    <field name="reason" placeholder="Expliquez au demandeur pourquoi la demande est refusée..."/>
+                </group>
+                <!-- footer = barre de boutons en bas de la fenêtre -->
+                <footer>
+                    <!-- type="object" : le bouton appelle la méthode Python action_confirm -->
+                    <button name="action_confirm" string="Refuser" type="object" class="btn-danger"/>
+                    <!-- special="cancel" : ferme simplement la fenêtre sans rien faire -->
+                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
